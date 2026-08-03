@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const config = {
-    port = process.env.port || 5000,
+    port: process.env.PORT || 5000,
 
     mongodb: {
         url: process.env.MONGODB_CONNECT_URL,
