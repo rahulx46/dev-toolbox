@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
+//Modulizing with express router
 router.get("/", (req, res) => {
     res.json({
         success: false,
