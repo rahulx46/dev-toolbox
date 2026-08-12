@@ -6,6 +6,12 @@ class ToolRepository extends BaseRepository {
         super(Tool)
     }
 
+    /**
+     * 
+     * @param {*} name - Tool name to search for
+     * @returns 
+     */
+
     async findByName(name) {
         return await this.findOne({ name });
     }
