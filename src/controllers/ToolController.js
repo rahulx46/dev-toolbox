@@ -2,7 +2,7 @@ const ToolService = require('../services/ToolService');
 
 class ToolController {
     constructor() {
-        this.ToolService = new ToolService();
+        this.toolService = new ToolService();
     }
 
     /**
@@ -13,6 +13,10 @@ class ToolController {
      *  - /api/tools?category='Backend'&limit=10
      */
     getAllTools = async (req, res) => {
+
+        // console.log("getAllTools called");
+        // console.log("URL:", req.originalUrl);
+
         try {
             const {category, popular, search, limit, skip, sort} = req.query;
 
@@ -28,10 +32,10 @@ class ToolController {
             let tools;
 
             if(search) {
-                tools = await this.ToolService.searchTools(search);
+                tools = await this.toolService.searchTools(search);
             }
             else {
-                tools = await this.ToolService.getAllTools(filters, options);
+                tools = await this.toolService.getAllTools(filters, options);
             }
 
             res.status(200).json({
@@ -49,9 +53,13 @@ class ToolController {
     }
 
     getToolById = async (req, res) => {
+
+        console.log("getToolById called");
+        console.log("ID:", req.params.id);
+        
         try {
             const { id } = req.params;
-            const tool = await this.ToolService.getToolById(id);
+            const tool = await this.toolService.getToolById(id);
 
             res.status(200).json({
                 success: true,
@@ -69,7 +77,7 @@ class ToolController {
     createTool = async (req, res) => {
         try {
             const toolData = req.body;
-            const tool = await this.ToolService.createTool(toolData);
+            const tool = await this.toolService.createTool(toolData);
 
             res.status(201).json({
                 success: true,
@@ -96,7 +104,7 @@ class ToolController {
                 });
             }
 
-            const results = await this.ToolService.createBulkTools(tools);
+            const results = await this.toolService.createBulkTools(tools);
 
             const statusCode = results.failed.length === 0 ? 201 : 207;
 
@@ -118,7 +126,7 @@ class ToolController {
             const { id } = req.params;
             const updateData = req.body;
 
-            const tool = await this.ToolService.updateTool(id, updateData);
+            const tool = await this.toolService.updateTool(id, updateData);
 
             res.status(200).json({
                 success: true,
@@ -138,7 +146,7 @@ class ToolController {
     deleteTool = async (req, res) => {
         try {
             const { id } = req.params;
-            const tool = await this.ToolService.deleteTool(id);
+            const tool = await this.toolService.deleteTool(id);
 
             res.status(200).json({
                 success: true,
@@ -165,7 +173,7 @@ class ToolController {
                 });
             }
 
-            const results = await this.ToolService.deleteBulkTools(ids);
+            const results = await this.toolService.deleteBulkTools(ids);
 
             const statusCode = results.failed.length === 0 ? 200 : 207;
 
@@ -185,7 +193,7 @@ class ToolController {
     getToolsByCategory = async (req, res) => {
         try {
             const { category } = req.params;
-            const tools = await this.ToolService.getToolsByCategory(category);
+            const tools = await this.toolService.getToolsByCategory(category);
 
             res.status(200).json({
                 success: true,
@@ -202,7 +210,7 @@ class ToolController {
 
     getPopularTools = async (req, res) => {
         try {
-            const tools = await this.ToolService.getPopularTools();
+            const tools = await this.toolService.getPopularTools();
 
             res.status(200).json({
                 success: true,
