@@ -1,5 +1,5 @@
 const BaseRepository = require("./BaseRepository");
-const Tool = require("../models/Tool");
+const Tool = require("../models/Tools");
 
 class ToolRepository extends BaseRepository {
     constructor() {
