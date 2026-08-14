@@ -62,11 +62,6 @@ const toolSchema = new mongoose.Schema({
 toolSchema.index({ category: 1, isPopular: -1 })
 toolSchema.index({ name: 1 })
 
-// Middleware
-toolSchema.pre('save', function (next) {
-    this.updatedAt = Date.now();
-    next();
-})
 
 // Helpers
 toolSchema.statics.findPopular = function (){
