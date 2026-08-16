@@ -25,10 +25,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-<<<<<<< Updated upstream
-.env
-node_modules/
-=======
 # Coverage
 coverage/
 
@@ -54,4 +50,3 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
->>>>>>> Stashed changes
