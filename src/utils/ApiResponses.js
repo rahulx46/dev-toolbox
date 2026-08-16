@@ -1,9 +1,9 @@
-const HttpStatus = require('./httpStatus');
+const HttpStatus = require('../constants/httpStatus');
 
 class ApiResponse {
     static success(res, statusCode = HttpStatus.OK, message = 'Success', data = null, meta = null) {
         const response = {
-            success = true,
+            success: true,
             message,
             ...(data !== null && { data }),
             ...(meta !== null && { meta })
