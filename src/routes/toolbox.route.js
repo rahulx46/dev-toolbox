@@ -1,8 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const ToolController = require("../controllers/ToolController");
+const ToolService = require("../services/ToolService");
+const ToolRepository = require("../repositories/ToolRepository");
 
-const toolController = new ToolController();
+const Repository = new ToolRepository();
+const Tools = new ToolService(Repository);
+// const User = new UserService();
+const toolController = new ToolController(Tools);
 
 // localhost:5000/api/tools/
 router.get('/', toolController.getAllTools);

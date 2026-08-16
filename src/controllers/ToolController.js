@@ -1,8 +1,8 @@
 const ToolService = require('../services/ToolService');
 
 class ToolController {
-    constructor() {
-        this.ToolService = new ToolService();
+    constructor(toolService) {
+        this.toolService = toolService;
     }
 
     /**
