@@ -4,6 +4,7 @@ class BaseRepository {
     }
 
     async findAll(filter = {}, options = {}) {
+        // console.log(filter, options);
         const { sort, limit, skip, populate, select } = options;
 
         let query = this.model.find(filter);
