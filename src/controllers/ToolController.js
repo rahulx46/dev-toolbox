@@ -1,4 +1,6 @@
 const ToolService = require('../services/ToolService');
+const  { Messages } = require('../constants');
+const ApiResponse = require('../utils/ApiResponses');
 
 class ToolController {
     constructor(toolService) {
@@ -13,6 +15,10 @@ class ToolController {
      *  - /api/tools?category='Backend'&limit=10
      */
     getAllTools = async (req, res) => {
+
+        // console.log("getAllTools called");
+        // console.log("URL:", req.originalUrl);
+
         try {
             const {category, popular, search, limit, skip, sort} = req.query;
 
@@ -23,65 +29,63 @@ class ToolController {
             const options = {};
             if(limit) options.limit = parseInt(limit);
             if(skip) options.skip = parseInt(skip);
+            if(sort) options.sort = sort;
             
-
             let tools;
 
             if(search) {
-                tools = await this.ToolService.searchTools(search);
+                tools = await this.toolService.searchTools(search);
             }
             else {
-                tools = await this.ToolService.getAllTools(filters, options);
+                tools = await this.toolService.getAllTools(filters, options);
             }
 
-            res.status(200).json({
-                success: true,
-                count: tools.length,
-                data: tools
-            })
+            return ApiResponse.ok(res, tools, Messages.TOOL.FETCHED, { count: tools.length });
 
         } catch (error) {
-             res.status(500).json({
-                success: false,
-                message: error.message
-             });
+            console.error(error);
+            return ApiResponse.internalServerError(res, Messages.ERROR.INTERNAL);
         }
     }
 
     getToolById = async (req, res) => {
+
+        // console.log("getToolById called");
+        // console.log("ID:", req.params.id);
+        
         try {
             const { id } = req.params;
-            const tool = await this.ToolService.getToolById(id);
+            const tool = await this.toolService.getToolById(id);
 
-            res.status(200).json({
-                success: true,
-                data: tool
-            });
+            return ApiResponse.ok(res, tool, Messages.TOOL.FETCHED, { count: 1 });
+            
         } catch (error) {
-            const statusCode = error.message.includes('not found') ? 404 : 500;
-            res.status(statusCode).json({
-                success: false,
-                message: error.message
-            });
+            console.error(error);
+
+            if (error.message.toLowerCase().includes('not found')) {
+                return ApiResponse.notFound(res, Messages.TOOL.NOT_FOUND);
+            }
+
+            return ApiResponse.internalServerError(res, Messages.ERROR.INTERNAL);
         }
     }
 
     createTool = async (req, res) => {
         try {
             const toolData = req.body;
-            const tool = await this.ToolService.createTool(toolData);
+            const tool = await this.toolService.createTool(toolData);
 
-            res.status(201).json({
-                success: true,
-                message: 'Tool created successfully',
-                data: tool
-            })
+            return ApiResponse.created(res, tool, Messages.TOOL.CREATED);
 
         } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: error.message
-            });
+            console.error(error);
+            if (error.message.toLowerCase().includes('already exists')) {
+                return ApiResponse.conflict(res, Messages.TOOL.ALREADY_EXISTS);
+            }
+            if(error.message.toLowerCase().includes('validation')) {
+                return ApiResponse.validationError(res, Messages.ERROR.VALIDATION_FAILED);
+            }
+            return ApiResponse.internalServerError(res, Messages.ERROR.INTERNAL);
         }
     }
 
@@ -90,26 +94,20 @@ class ToolController {
             const { tools } = req.body;
 
             if (!Array.isArray(tools)) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Tools should be an array'
-                });
+                return ApiResponse.badRequest(res, Messages.ERROR.ARRAY_REQUIRED);
             }
 
-            const results = await this.ToolService.createBulkTools(tools);
+            const results = await this.toolService.createBulkTools(tools);
 
-            const statusCode = results.failed.length === 0 ? 201 : 207;
+            if(results.failed.length > 0) {
+                return ApiResponse.multiStatus(res, results, Messages.TOOL.BULK_CREATED, { created: results.created.length, failed: results.failed.length });
+            }
 
-            res.status(statusCode).json({
-                success: true,
-                message: `Bulk operation completed. ${results.created.length} created, ${results.failed.length} failed`,
-                data: results
-            });
+            return ApiResponse.created(res, results, Messages.TOOL.BULK_CREATED);
+
         } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: error.message
-            });
+            console.error(error);
+            return ApiResponse.internalServerError(res, Messages.ERROR.BULK_CREATE_FAILED);
         }
     }
 
@@ -118,39 +116,39 @@ class ToolController {
             const { id } = req.params;
             const updateData = req.body;
 
-            const tool = await this.ToolService.updateTool(id, updateData);
+            const tool = await this.toolService.updateTool(id, updateData);
 
-            res.status(200).json({
-                success: true,
-                message: 'Tool updated successfully',
-                data: tool
-            });
+            return ApiResponse.ok(res, tool, Messages.TOOL.UPDATED, { count: 1 });
+
         } catch (error) {
-            const statusCode = error.message.includes('not found') ? 404 :
-                error.message.includes('Validation failed') ? 400 : 500;
-            res.status(statusCode).json({
-                success: false,
-                message: error.message
-            });
+            console.error(error);
+
+            if (error.message.toLowerCase().includes('not found')) {
+                return ApiResponse.notFound(res, Messages.TOOL.NOT_FOUND);
+            }
+
+            if (error.name === 'ValidationError') {
+                return ApiResponse.validationError(res, Messages.ERROR.VALIDATION_FAILED);
+            }
+
+            return ApiResponse.internalServerError(res, Messages.ERROR.INTERNAL);
         }
     }
 
     deleteTool = async (req, res) => {
         try {
             const { id } = req.params;
-            const tool = await this.ToolService.deleteTool(id);
+            const tool = await this.toolService.deleteTool(id);
 
-            res.status(200).json({
-                success: true,
-                message: 'Tool deleted successfully',
-                data: tool
-            });
+            return ApiResponse.ok(res, tool, Messages.TOOL.DELETED, { count: 1 });
+            
         } catch (error) {
-            const statusCode = error.message.includes('not found') ? 404 : 500;
-            res.status(statusCode).json({
-                success: false,
-                message: error.message
-            });
+            console.error(error);
+            if (error.message.toLowerCase().includes('not found')) {
+                return ApiResponse.notFound(res, Messages.TOOL.NOT_FOUND);
+            }
+            
+            return ApiResponse.internalServerError(res, Messages.ERROR.INTERNAL);
         }
     }
 
@@ -159,69 +157,48 @@ class ToolController {
             const { ids } = req.body;
 
             if (!Array.isArray(ids)) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'IDs should be an array'
-                });
+                return ApiResponse.badRequest(res, Messages.ERROR.ARRAY_REQUIRED);
             }
 
-            const results = await this.ToolService.deleteBulkTools(ids);
+            const results = await this.toolService.deleteBulkTools(ids);
 
-            const statusCode = results.failed.length === 0 ? 200 : 207;
+            if(results.failed.length > 0) {
+                return ApiResponse.multiStatus(res, results, Messages.TOOL.BULK_DELETED, { deleted: results.deleted.length, failed: results.failed.length });
+            }
 
-            res.status(statusCode).json({
-                success: true,
-                message: `Bulk deletion completed. ${results.deleted.length} deleted, ${results.failed.length} failed`,
-                data: results
-            });
+            return ApiResponse.ok(res, results, Messages.TOOL.BULK_DELETED, { deleted: results.deleted.length });
+            
         } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: error.message
-            });
+            console.error(error);
+            return ApiResponse.internalServerError(res, Messages.ERROR.INTERNAL);
         }
     }
 
     getToolsByCategory = async (req, res) => {
         try {
             const { category } = req.params;
-            const tools = await this.ToolService.getToolsByCategory(category);
+            const tools = await this.toolService.getToolsByCategory(category);
 
-            res.status(200).json({
-                success: true,
-                count: tools.length,
-                data: tools
-            });
+            return ApiResponse.ok(res, tools, Messages.TOOL.BY_CATEGORY, { count: tools.length });
+            
         } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: error.message
-            });
+            console.error(error);
+            return ApiResponse.internalServerError(res, Messages.ERROR.INTERNAL);
         }
     }
 
     getPopularTools = async (req, res) => {
         try {
-            const tools = await this.ToolService.getPopularTools();
+            const tools = await this.toolService.getPopularTools();
 
-            res.status(200).json({
-                success: true,
-                count: tools.length,
-                data: tools
-            });
+            return ApiResponse.ok(res, tools, Messages.TOOL.POPULAR, { count: tools.length });
+
         } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: error.message
-            });
+            console.error(error);
+            return ApiResponse.internalServerError(res, Messages.ERROR.INTERNAL);
         }
     }
-
 
 }
 
 module.exports = ToolController;
-
-
-
-
