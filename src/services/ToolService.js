@@ -5,8 +5,8 @@ const ToolRepository = require("../repositories/ToolRepository");
  * Service/ Business logic layer for Tool entity
  */
 class ToolService{
-    constructor() {
-        this.toolRepository = new ToolRepository();
+    constructor(toolRepository) {
+        this.toolRepository = toolRepository;
     }
 
     /**

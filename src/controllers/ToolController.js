@@ -3,8 +3,8 @@ const  { Messages } = require('../constants');
 const ApiResponse = require('../utils/ApiResponses');
 
 class ToolController {
-    constructor() {
-        this.toolService = new ToolService();
+    constructor(toolService) {
+        this.toolService = toolService;
     }
 
     /**
