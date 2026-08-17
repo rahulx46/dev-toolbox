@@ -24,6 +24,7 @@ The project follows a layered backend architecture that separates HTTP handling,
 - Structured API responses
 - Standardized HTTP status handling
 - Error handling
+- k6 load and performance testing
 
 ## Tech Stack
 
@@ -34,6 +35,7 @@ The project follows a layered backend architecture that separates HTTP handling,
 - **Yarn** — Package manager
 - **dotenv** — Environment variable management
 - **CORS** — Cross-origin request handling
+- **k6** — API load and performance testing
 
 ## Architecture
 
@@ -160,7 +162,7 @@ The same dependency injection approach is applied across the relevant layers of 
     │   │   └── ToolController.js
     │   │
     │   ├── models/
-    │   │   └── tools.js
+    │   │   └── Tools.js
     │   │
     │   ├── repositories/
     │   │   ├── BaseRepository.js
@@ -172,6 +174,10 @@ The same dependency injection approach is applied across the relevant layers of 
     │   │
     │   ├── services/
     │   │   └── ToolService.js
+    │   │
+    │   ├── tests/
+    │   │   └── load/
+    │   │       └── tools.load.js
     │   │
     │   ├── utils/
     │   │   └── ApiResponses.js
@@ -353,7 +359,7 @@ This prevents controllers from repeatedly constructing response objects and keep
 
     {
       "success": true,
-      "message": "Tool fetched successfully",
+      "message": "Tools fetched successfully",
       "data": [
         {
           "name": "Postman",
@@ -387,6 +393,48 @@ This prevents controllers from repeatedly constructing response objects and keep
 | `409` | Resource conflict or duplicate |
 | `422` | Validation error |
 | `500` | Internal server error |
+
+## Performance Testing
+
+The API includes a **k6 load test** for evaluating REST API performance under concurrent workloads.
+
+The load test measures:
+
+- Request throughput
+- Response latency
+- p95 latency
+- HTTP request failure rate
+- Response status checks
+- Performance under increasing concurrent users
+
+### Load Test
+
+The test targets the tools API:
+
+    GET /api/tools?category=API_TOOL
+
+The base URL can be configured using the `BASE_URL` environment variable.
+
+Run the test against the local server:
+
+    k6 run ./src/tests/load/tools.load.js
+
+Or specify a custom API URL:
+
+    k6 run -e BASE_URL=http://localhost:5000 ./src/tests/load/tools.load.js
+
+The test uses virtual users (VUs) to simulate concurrent clients and continuously sends requests for the configured test duration.
+
+### Example Test Configuration
+
+    export const options = {
+        vus: 100,
+        duration: '30s',
+    };
+
+This configuration runs the test with 100 concurrent virtual users for 30 seconds.
+
+The test verifies that API requests return HTTP `200` responses while k6 collects performance metrics such as throughput, response duration, and failure rate.
 
 ## SOLID and Design Principles
 
@@ -521,6 +569,7 @@ Make sure `.env` is included in `.gitignore` and is not committed to the reposit
 - Node.js 18+
 - MongoDB
 - Yarn
+- k6 (only required for performance testing)
 
 ### Clone the Repository
 
